@@ -6,13 +6,10 @@
  * references in dispatches (job_index, tech_index, etc.)
  *
  * Usage:
- *   DB_HOST=localhost DB_PORT=5432 DB_NAME=hvac_db \
- *   DB_USER=hvac_user DB_PASSWORD=secret node run_seeds.js
- *
- *   Or with a .env file:
- *   node --env-file=../../backend/.env run_seeds.js
+ *   npm run seed   (reads credentials from backend/.env)
  */
 
+import 'dotenv/config'
 import pg       from 'pg'
 import bcrypt   from 'bcryptjs'
 import path     from 'path'
@@ -29,7 +26,7 @@ const __dirname  = path.dirname(__filename)
 
 function loadJSON(filename) {
   return JSON.parse(
-    fs.readFileSync(path.join(__dirname, '../mock', filename), 'utf-8')
+    fs.readFileSync(path.join(__dirname, 'mock', filename), 'utf-8')
   )
 }
 
