@@ -1,0 +1,58 @@
+[
+  {
+    "job_index": 1,
+    "tech_index": 3,
+    "dispatched_by_index": 0,
+    "dispatch_notes": "Priority emergency dispatch. Mike to head straight to site. Call on arrival.",
+    "status": "en-route"
+  },
+  {
+    "job_index": 4,
+    "tech_index": 5,
+    "dispatched_by_index": 0,
+    "dispatch_notes": "Possible electrical fault — Derek to bring full diagnostic kit and multimeter.",
+    "status": "on-site"
+  },
+  {
+    "job_index": 6,
+    "tech_index": 4,
+    "dispatched_by_index": 1,
+    "dispatch_notes": "Angela assigned for full duct cleaning. Confirm customer is home.",
+    "status": "sent"
+  },
+  {
+    "job_index": 11,
+    "tech_index": 3,
+    "dispatched_by_index": 0,
+    "dispatch_notes": "Gas clearance confirmed by utility company. Mike to inspect furnace for damage or carbon deposits.",
+    "status": "acknowledged"
+  },
+  {
+    "job_index": 12,
+    "tech_index": 5,
+    "dispatched_by_index": 1,
+    "dispatch_notes": "Derek checking compressor and bearings. Likely needs replacement.",
+    "status": "on-site"
+  },
+  {
+    "job_index": 16,
+    "tech_index": 4,
+    "dispatched_by_index": 0,
+    "dispatch_notes": "Victor's heat pump — Angela to run full heat pump diagnostics including reversing valve.",
+    "status": "sent"
+  },
+  {
+    "job_index": 2,
+    "tech_index": 3,
+    "dispatched_by_index": 0,
+    "dispatch_notes": "Completed maintenance job. Mike confirmed all work finished.",
+    "status": "resolved"
+  },
+  {
+    "job_index": 8,
+    "tech_index": 4,
+    "dispatched_by_index": 1,
+    "dispatch_notes": "Full HVAC install completed on new construction. Angela led install team.",
+    "status": "resolved"
+  }
+]

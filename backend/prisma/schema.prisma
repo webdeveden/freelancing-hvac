@@ -1,0 +1,95 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            Int      @id @default(autoincrement())
+  email         String   @unique
+  password_hash String
+  role          String   @default("tech")
+  full_name     String
+  phone         String?
+  is_active     Boolean  @default(true)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  assigned_jobs      Job[]        @relation("AssignedTech")
+  tech_dispatches    Dispatch[]   @relation("TechDispatches")
+  created_dispatches Dispatch[]   @relation("DispatchedBy")
+  comments           JobComment[]
+
+  @@map("users")
+}
+
+model Job {
+  id               Int       @id @default(autoincrement())
+  caller_name      String?
+  caller_phone     String
+  service_type     String?
+  description      String?
+  address          String?
+  city             String?
+  status           String    @default("pending")
+  priority         String    @default("normal")
+  assigned_tech_id Int?
+  scheduled_at     DateTime?
+  notes            String?
+  call_sid         String?
+  created_at       DateTime  @default(now())
+  updated_at       DateTime  @updatedAt
+
+  assigned_tech User?        @relation("AssignedTech", fields: [assigned_tech_id], references: [id])
+  dispatches    Dispatch[]
+  comments      JobComment[]
+
+  @@map("jobs")
+}
+
+model Dispatch {
+  id             Int      @id @default(autoincrement())
+  job_id         Int
+  tech_id        Int?
+  dispatched_by  Int?
+  dispatch_notes String?
+  dispatched_at  DateTime @default(now())
+  status         String   @default("sent")
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  job        Job   @relation(fields: [job_id], references: [id], onDelete: Cascade)
+  tech       User? @relation("TechDispatches", fields: [tech_id], references: [id])
+  dispatcher User? @relation("DispatchedBy", fields: [dispatched_by], references: [id])
+
+  @@map("dispatches")
+}
+
+model FaqEntry {
+  id         Int      @id @default(autoincrement())
+  category   String   @default("general")
+  question   String
+  answer     String
+  keywords   String[]
+  active     Boolean  @default(true)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@map("faq_entries")
+}
+
+model JobComment {
+  id         Int      @id @default(autoincrement())
+  job_id     Int
+  author_id  Int
+  content    String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  job    Job  @relation(fields: [job_id], references: [id], onDelete: Cascade)
+  author User @relation(fields: [author_id], references: [id], onDelete: Cascade)
+
+  @@map("job_comments")
+}

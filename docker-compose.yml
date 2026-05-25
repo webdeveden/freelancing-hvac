@@ -1,0 +1,130 @@
+# ─── HVAC AI Receptionist — Docker Compose ───────────────────────────────────
+# Starts all 4 services: PostgreSQL, Node.js backend, Python AI service, Vue.js frontend
+#
+# Usage:
+#   1. Copy .env.example to .env and fill in real values
+#   2. docker-compose up --build
+#   3. Seed the database (first run only):
+#      docker-compose exec backend node database/seeds/run_seeds.js
+
+services:
+
+  # ── PostgreSQL ──────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: hvac_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       ${DB_NAME:-hvac_db}
+      POSTGRES_USER:     ${DB_USER:-hvac_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-hvacpassword}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Auto-run migrations on first start
+      - ./database/migrations:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-hvac_user} -d ${DB_NAME:-hvac_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Node.js Backend ─────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: .               # Root context so Dockerfile can COPY database/ into the image
+      dockerfile: backend/Dockerfile
+    container_name: hvac_backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV:              production
+      PORT:                  3001
+      DATABASE_URL:          ${DATABASE_URL}
+      DB_HOST:               postgres
+      DB_PORT:               5432
+      DB_NAME:               ${DB_NAME:-hvac_db}
+      DB_USER:               ${DB_USER:-hvac_user}
+      DB_PASSWORD:           ${DB_PASSWORD:-hvacpassword}
+      JWT_SECRET:            ${JWT_SECRET}
+      JWT_EXPIRES_IN:        ${JWT_EXPIRES_IN:-8h}
+      INTERNAL_API_SECRET:   ${INTERNAL_API_SECRET}
+      FRONTEND_URL:          http://172.23.241.64:5173
+    ports:
+      - "3001:3001"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3001/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  # ── Python AI Service ───────────────────────────────────────────────────────
+  ai-service:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    container_name: hvac_ai
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+    environment:
+      ENVIRONMENT:           production
+      PORT:                  8000
+      DB_HOST:               postgres
+      DB_PORT:               5432
+      DB_NAME:               ${DB_NAME:-hvac_db}
+      DB_USER:               ${DB_USER:-hvac_user}
+      DB_PASSWORD:           ${DB_PASSWORD:-hvacpassword}
+      ANTHROPIC_API_KEY:     ${ANTHROPIC_API_KEY}
+      AI_MODEL:              ${AI_MODEL:-claude-haiku-4-5-20251001}
+      TWILIO_ACCOUNT_SID:    ${TWILIO_ACCOUNT_SID}
+      TWILIO_AUTH_TOKEN:     ${TWILIO_AUTH_TOKEN}
+      TWILIO_PHONE_NUMBER:   ${TWILIO_PHONE_NUMBER}
+      BACKEND_URL:           http://backend:3001
+      INTERNAL_API_SECRET:   ${INTERNAL_API_SECRET}
+      PUBLIC_URL:            ${PUBLIC_URL:-}
+      BUSINESS_NAME:         ${BUSINESS_NAME:-HVAC Pro Services}
+      BUSINESS_PHONE:        ${BUSINESS_PHONE}
+      SERVICE_AREA:          ${SERVICE_AREA:-Dallas, TX}
+      BUSINESS_HOURS:        ${BUSINESS_HOURS:-Mon-Fri 8am-6pm}
+      EMERGENCY_HOURS:       "24/7 emergency service available"
+      RECEPTIONIST_PHONE:    ${RECEPTIONIST_PHONE:-}
+      BUSINESS_HOURS_START:  ${BUSINESS_HOURS_START:-08:00}
+      BUSINESS_HOURS_END:    ${BUSINESS_HOURS_END:-18:00}
+      BUSINESS_DAYS:         ${BUSINESS_DAYS:-Mon,Tue,Wed,Thu,Fri,Sat}
+      BUSINESS_TIMEZONE:     ${BUSINESS_TIMEZONE:-America/Chicago}
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:8000/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  # ── Vue.js Frontend (production build via nginx) ────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: hvac_frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      # These are baked in at build time via Vite's .env handling.
+      # For dynamic config, use runtime injection or a config endpoint.
+      VITE_API_BASE_URL: http://172.23.241.64:3001/api
+      VITE_SOCKET_URL:   http://172.23.241.64:3001
+    ports:
+      - "5173:80"
+
+# ── Volumes ─────────────────────────────────────────────────────────────────
+volumes:
+  postgres_data:
+    driver: local

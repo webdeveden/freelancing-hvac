@@ -1,0 +1,35 @@
+# Environment variables — never commit secrets
+.env
+.env.local
+.env.*.local
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyc
+ai-service/venv/
+ai-service/.venv/
+*.egg-info/
+
+# Frontend build output
+frontend/dist/
+
+# Prisma generated client (regenerated on npm install)
+backend/node_modules/
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
