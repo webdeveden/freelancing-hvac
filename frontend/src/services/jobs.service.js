@@ -21,6 +21,18 @@ const jobsService = {
     const res = await api.patch(`/jobs/${id}/assign`, { tech_id: techId })
     return res.data
   },
+  async claimJob(id) {
+    const res = await api.post(`/jobs/${id}/claim`)
+    return res.data
+  },
+  async approveRequest(id) {
+    const res = await api.patch(`/jobs/${id}/approve`)
+    return res.data
+  },
+  async rejectRequest(id) {
+    const res = await api.patch(`/jobs/${id}/reject`)
+    return res.data
+  },
   async deleteJob(id) {
     const res = await api.delete(`/jobs/${id}`)
     return res.data

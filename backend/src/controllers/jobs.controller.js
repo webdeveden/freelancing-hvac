@@ -3,14 +3,16 @@ import * as socket   from '../services/socket.service.js'
 
 const JOB_INCLUDE = {
   assigned_tech: { select: { full_name: true, phone: true } },
+  requested_by:  { select: { full_name: true } },
 }
 
 function formatJob(j) {
-  const { assigned_tech, ...rest } = j
+  const { assigned_tech, requested_by, ...rest } = j
   return {
     ...rest,
     assigned_tech_name:  assigned_tech?.full_name ?? null,
     assigned_tech_phone: assigned_tech?.phone     ?? null,
+    requested_by_name:   requested_by?.full_name  ?? null,
   }
 }
 
@@ -46,6 +48,35 @@ export async function listJobs(req, res, next) {
     if (priority)         where.priority         = priority
     if (assigned_tech_id) where.assigned_tech_id = parseInt(assigned_tech_id)
 
+    // Techs can only see pending (to claim) and their own jobs
+    if (req.user.role === 'tech') {
+      if (assigned_tech_id) {
+        // Dispatch board: requesting their own jobs — enforce it's their own ID
+        where.assigned_tech_id = req.user.id
+      } else if (['in-progress', 'completed'].includes(status)) {
+        // Jobs list filtered by status: scope to their own
+        where.assigned_tech_id = req.user.id
+      } else if (status === 'requested') {
+        // Tech filters to requested: show only their own requests
+        where.requested_by_id = req.user.id
+      } else if (!status) {
+        // Default view: all pending jobs to claim + tech's own awaiting-approval requests
+        where.OR = [
+          { status: 'pending' },
+          { status: 'requested', requested_by_id: req.user.id },
+        ]
+      }
+    }
+
+    // For summary counts: techs see pending totals + their own in-progress/completed/requested
+    const countWhere = req.user.role === 'tech'
+      ? { OR: [
+          { status: 'pending' },
+          { assigned_tech_id: req.user.id },
+          { status: 'requested', requested_by_id: req.user.id },
+        ]}
+      : {}
+
     const [jobs, total, statusGroups] = await Promise.all([
       prisma.job.findMany({
         where,
@@ -55,7 +86,7 @@ export async function listJobs(req, res, next) {
         take:     parseInt(limit),
       }),
       prisma.job.count({ where }),
-      prisma.job.groupBy({ by: ['status'], _count: { _all: true } }),
+      prisma.job.groupBy({ by: ['status'], where: countWhere, _count: { _all: true } }),
     ])
 
     const statusCounts = {}
@@ -201,6 +232,75 @@ export async function deleteJob(req, res, next) {
 
     socket.emitJobDeleted(id)
     res.json({ message: 'Job deleted', jobId: id })
+  } catch (err) { next(err) }
+}
+
+// ── Tech job requests ──────────────────────────────────────────────────────
+
+export async function claimJob(req, res, next) {
+  try {
+    const id = parseInt(req.params.id)
+
+    const existing = await prisma.job.findUnique({ where: { id }, select: { status: true, requested_by_id: true } })
+    if (!existing)                      return res.status(404).json({ error: 'Job not found' })
+    if (existing.status !== 'pending')  return res.status(400).json({ error: 'Only pending jobs can be claimed' })
+    if (existing.requested_by_id)       return res.status(409).json({ error: 'Job has already been claimed by another tech' })
+
+    const updated = await prisma.job.update({
+      where:   { id },
+      data:    { status: 'requested', requested_by_id: req.user.id },
+      include: JOB_INCLUDE,
+    })
+
+    const job = formatJob(updated)
+    socket.emitJobRequested(job)
+    res.json({ job })
+  } catch (err) { next(err) }
+}
+
+
+export async function approveRequest(req, res, next) {
+  try {
+    const id = parseInt(req.params.id)
+
+    const existing = await prisma.job.findUnique({ where: { id }, select: { status: true, requested_by_id: true } })
+    if (!existing)                        return res.status(404).json({ error: 'Job not found' })
+    if (existing.status !== 'requested')  return res.status(400).json({ error: 'Job is not in requested status' })
+
+    const updated = await prisma.job.update({
+      where:   { id },
+      data:    { status: 'assigned', assigned_tech_id: existing.requested_by_id },
+      include: JOB_INCLUDE,
+    })
+
+    const job = formatJob(updated)
+
+    await prisma.dispatch.create({
+      data: { job_id: id, tech_id: existing.requested_by_id, dispatched_by: req.user.id },
+    })
+
+    socket.emitJobUpdated(job)
+    res.json({ job })
+  } catch (err) { next(err) }
+}
+
+export async function rejectRequest(req, res, next) {
+  try {
+    const id = parseInt(req.params.id)
+
+    const existing = await prisma.job.findUnique({ where: { id }, select: { status: true } })
+    if (!existing)                        return res.status(404).json({ error: 'Job not found' })
+    if (existing.status !== 'requested')  return res.status(400).json({ error: 'Job is not in requested status' })
+
+    const updated = await prisma.job.update({
+      where:   { id },
+      data:    { status: 'rejected' },
+      include: JOB_INCLUDE,
+    })
+
+    const job = formatJob(updated)
+    socket.emitJobUpdated(job)
+    res.json({ job })
   } catch (err) { next(err) }
 }
 

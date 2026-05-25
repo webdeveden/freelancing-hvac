@@ -32,3 +32,12 @@ export function requireAdmin(req, res, next) {
     next()
   })
 }
+
+export function requireAdminOrDispatcher(req, res, next) {
+  requireAuth(req, res, () => {
+    if (req.user.role !== 'admin' && req.user.role !== 'dispatcher') {
+      return res.status(403).json({ error: 'Admin or dispatcher access required' })
+    }
+    next()
+  })
+}

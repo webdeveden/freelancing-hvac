@@ -48,6 +48,10 @@ export const useDispatchesStore = defineStore('dispatches', () => {
     unreadAlerts.value++
   }
 
+  function onJobRequested() {
+    unreadAlerts.value++
+  }
+
   function clearAlerts() {
     unreadAlerts.value = 0
   }
@@ -55,6 +59,6 @@ export const useDispatchesStore = defineStore('dispatches', () => {
   return {
     dispatches, total, loading, unreadAlerts,
     fetchDispatches, updateStatus,
-    onDispatchNew, onDispatchStatus, onEmergencyAlert, clearAlerts,
+    onDispatchNew, onDispatchStatus, onEmergencyAlert, onJobRequested, clearAlerts,
   }
 })

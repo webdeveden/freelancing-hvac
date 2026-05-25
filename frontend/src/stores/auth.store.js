@@ -27,8 +27,10 @@ export const useAuthStore = defineStore('auth', () => {
   const token = ref(localStorage.getItem(TOKEN_KEY) || null)
   const user  = ref(token.value ? decodeToken(token.value) : null)
 
-  const isLoggedIn = computed(() => !!token.value)
-  const isAdmin    = computed(() => user.value?.role === 'admin')
+  const isLoggedIn    = computed(() => !!token.value)
+  const isAdmin       = computed(() => user.value?.role === 'admin')
+  const isDispatcher  = computed(() => user.value?.role === 'dispatcher')
+  const isTech        = computed(() => user.value?.role === 'tech')
 
   async function login(email, password) {
     const data = await authService.login(email, password)
@@ -55,5 +57,5 @@ export const useAuthStore = defineStore('auth', () => {
     return token.value
   }
 
-  return { token, user, isLoggedIn, isAdmin, login, register, logout, getToken }
+  return { token, user, isLoggedIn, isAdmin, isDispatcher, isTech, login, register, logout, getToken }
 })

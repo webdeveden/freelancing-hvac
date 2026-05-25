@@ -79,30 +79,26 @@ function goToJob() {
     <!-- Icon -->
     <div
       class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
-      :class="
-        toast.type === 'dispatch'
-          ? 'bg-brand-100 dark:bg-brand-900'
-          : 'bg-green-100 dark:bg-green-900'
-      "
+      :class="{
+        'bg-brand-100 dark:bg-brand-900': toast.type === 'dispatch',
+        'bg-teal-100 dark:bg-teal-900':   toast.type === 'request',
+        'bg-green-100 dark:bg-green-900':  toast.type === 'info',
+      }"
     >
-      <svg
-        class="w-4 h-4"
-        :class="toast.type === 'dispatch' ? 'text-brand-600' : 'text-green-600'"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          stroke-width="2"
-          d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-        />
+      <!-- Request icon: hand raise -->
+      <svg v-if="toast.type === 'request'" class="w-4 h-4 text-teal-600 dark:text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M7 11.5V14m0-2.5v-6a1.5 1.5 0 113 0m-3 6a1.5 1.5 0 00-3 0v2a7.5 7.5 0 0015 0v-5a1.5 1.5 0 00-3 0m-6-3V11m0-5.5v-1a1.5 1.5 0 013 0v1m0 0V11m0-5.5a1.5 1.5 0 013 0v3m0 0V11"/>
+      </svg>
+      <!-- Bell icon for dispatch / info -->
+      <svg v-else class="w-4 h-4" :class="toast.type === 'dispatch' ? 'text-brand-600' : 'text-green-600'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
       </svg>
     </div>
     <div class="flex-1 min-w-0">
       <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
-        {{ toast.type === "dispatch" ? "New Dispatch" : "New Job" }}
+        {{ toast.type === 'dispatch' ? 'New Dispatch' : toast.type === 'request' ? 'Job Request' : 'New Job' }}
       </p>
       <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">
         {{ toast.message }}

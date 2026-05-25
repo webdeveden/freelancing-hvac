@@ -2,7 +2,8 @@
 import { ref, watch } from 'vue'
 
 const props = defineProps({
-  modelValue: { type: Object, default: () => ({}) },
+  modelValue:      { type: Object, default: () => ({}) },
+  allowedStatuses: { type: Array,  default: () => ['requested', 'pending', 'assigned', 'in-progress', 'completed', 'cancelled'] },
 })
 const emit = defineEmits(['update:modelValue', 'filter'])
 
@@ -37,11 +38,12 @@ function reset() {
              focus:outline-none focus:ring-2 focus:ring-brand-500"
     >
       <option value="">All Statuses</option>
-      <option value="pending">Pending</option>
-      <option value="assigned">Assigned</option>
-      <option value="in-progress">In Progress</option>
-      <option value="completed">Completed</option>
-      <option value="cancelled">Cancelled</option>
+      <option v-if="allowedStatuses.includes('requested')"   value="requested">Requested</option>
+      <option v-if="allowedStatuses.includes('pending')"     value="pending">Pending</option>
+      <option v-if="allowedStatuses.includes('assigned')"    value="assigned">Assigned</option>
+      <option v-if="allowedStatuses.includes('in-progress')" value="in-progress">In Progress</option>
+      <option v-if="allowedStatuses.includes('completed')"   value="completed">Completed</option>
+      <option v-if="allowedStatuses.includes('cancelled')"   value="cancelled">Cancelled</option>
     </select>
 
     <!-- Priority filter -->

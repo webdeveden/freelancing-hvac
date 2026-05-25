@@ -22,12 +22,14 @@ const route  = useRoute()
 const router = useRouter()
 const auth   = useAuthStore()
 
-const job          = ref(null)
-const loading      = ref(true)
-const error        = ref(null)
-const showAssign   = ref(false)
-const showDelete   = ref(false)
+const job           = ref(null)
+const loading       = ref(true)
+const error         = ref(null)
+const showAssign    = ref(false)
+const showDelete    = ref(false)
 const statusLoading = ref(false)
+const claimLoading  = ref(false)
+const claimError    = ref(null)
 
 onMounted(async () => {
   try {
@@ -57,8 +59,31 @@ async function confirmDelete() {
 }
 
 function onAssigned(updatedJob) {
-  job.value   = updatedJob
+  job.value        = updatedJob
   showAssign.value = false
+}
+
+async function claimJob() {
+  claimLoading.value = true
+  claimError.value   = null
+  try {
+    const data = await jobsService.claimJob(job.value.id)
+    job.value  = data.job
+  } catch (e) {
+    claimError.value = e.response?.data?.error || 'Failed to claim job'
+  } finally {
+    claimLoading.value = false
+  }
+}
+
+async function approveRequest() {
+  const data = await jobsService.approveRequest(job.value.id)
+  job.value  = data.job
+}
+
+async function rejectRequest() {
+  const data = await jobsService.rejectRequest(job.value.id)
+  job.value  = data.job
 }
 
 function formatDate(iso) {
@@ -126,6 +151,67 @@ function formatDate(iso) {
               : 'border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'"
           >
             {{ s }}
+          </button>
+        </div>
+
+        <!-- Tech: request a pending job -->
+        <div
+          v-if="auth.isTech && job.status === 'pending' && !job.requested_by_id"
+          class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800"
+        >
+          <p v-if="claimError" class="text-xs text-red-500 mb-2">{{ claimError }}</p>
+          <button
+            @click="claimJob"
+            :disabled="claimLoading"
+            class="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg
+                   bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-400
+                   hover:bg-green-100 dark:hover:bg-green-900 transition disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            {{ claimLoading ? 'Requesting…' : 'Request Job' }}
+          </button>
+        </div>
+
+        <!-- Tech: already claimed -->
+        <div
+          v-if="auth.isTech && job.status === 'requested' && job.requested_by_id === auth.user?.id"
+          class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800"
+        >
+          <p class="text-xs text-yellow-600 dark:text-yellow-400">Your request is pending dispatcher approval.</p>
+        </div>
+
+        <!-- Admin/Dispatcher: approve or reject a requested job -->
+        <div
+          v-if="(auth.isAdmin || auth.isDispatcher) && job.status === 'requested'"
+          class="mt-4 flex flex-wrap gap-2 pt-4 border-t border-gray-100 dark:border-gray-800"
+        >
+          <p class="text-xs font-medium text-gray-500 dark:text-gray-400 w-full">
+            Requested by {{ job.requested_by_name || 'a tech' }}:
+          </p>
+          <button
+            @click="approveRequest"
+            class="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg
+                   bg-green-50 dark:bg-green-950 text-green-700 dark:text-green-400
+                   hover:bg-green-100 dark:hover:bg-green-900 transition"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+            Approve
+          </button>
+          <button
+            @click="rejectRequest"
+            class="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg
+                   bg-red-50 dark:bg-red-950 text-red-700 dark:text-red-400
+                   hover:bg-red-100 dark:hover:bg-red-900 transition"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+            Reject
           </button>
         </div>
 

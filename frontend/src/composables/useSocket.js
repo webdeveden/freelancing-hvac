@@ -53,6 +53,17 @@ export function useSocket() {
       jobsStore.onJobUpdated(job)
     })
 
+    socket.on('job:requested', ({ job }) => {
+      jobsStore.onJobUpdated(job)
+      dispatchesStore.onJobRequested()
+      toast.value = {
+        type: 'request',
+        message: `Job request: ${job.requested_by_name || 'A tech'} wants Job #${job.id} — ${job.service_type || 'Service Request'}`,
+        job,
+      }
+      setTimeout(() => { toast.value = null }, 6000)
+    })
+
     socket.on('job:deleted', ({ jobId }) => {
       jobsStore.onJobDeleted(jobId)
     })

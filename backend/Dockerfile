@@ -1,6 +1,7 @@
 FROM node:22-alpine
 
-RUN apk upgrade --no-cache
+ARG NODE_ENV=development
+RUN if [ "$NODE_ENV" = "production" ]; then apk upgrade --no-cache; fi
 
 WORKDIR /app
 

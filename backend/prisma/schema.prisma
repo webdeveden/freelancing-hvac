@@ -18,6 +18,7 @@ model User {
   updated_at    DateTime @updatedAt
 
   assigned_jobs      Job[]        @relation("AssignedTech")
+  requested_jobs     Job[]        @relation("RequestedBy")
   tech_dispatches    Dispatch[]   @relation("TechDispatches")
   created_dispatches Dispatch[]   @relation("DispatchedBy")
   comments           JobComment[]
@@ -35,14 +36,16 @@ model Job {
   city             String?
   status           String    @default("pending")
   priority         String    @default("normal")
-  assigned_tech_id Int?
-  scheduled_at     DateTime?
-  notes            String?
-  call_sid         String?
-  created_at       DateTime  @default(now())
-  updated_at       DateTime  @updatedAt
+  assigned_tech_id  Int?
+  requested_by_id   Int?
+  scheduled_at      DateTime?
+  notes             String?
+  call_sid          String?
+  created_at        DateTime  @default(now())
+  updated_at        DateTime  @updatedAt
 
   assigned_tech User?        @relation("AssignedTech", fields: [assigned_tech_id], references: [id])
+  requested_by  User?        @relation("RequestedBy",  fields: [requested_by_id],  references: [id])
   dispatches    Dispatch[]
   comments      JobComment[]
 

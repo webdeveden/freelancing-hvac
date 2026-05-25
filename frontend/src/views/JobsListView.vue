@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, watch } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 import { useJobsStore }  from '../stores/jobs.store.js'
 import { useAuthStore }  from '../stores/auth.store.js'
 import AppLayout         from '../components/layout/AppLayout.vue'
@@ -11,21 +11,38 @@ const jobs = useJobsStore()
 const auth = useAuthStore()
 
 const filters = ref({ status: '', priority: '' })
-const showCreateModal = ref(false)
 
-onMounted(() => jobs.fetchJobs())
+const statuses = computed(() =>
+  auth.isTech
+    ? ['pending', 'requested', 'in-progress', 'completed']
+    : ['requested', 'pending', 'assigned', 'in-progress', 'completed']
+)
+
+const allowedStatuses = computed(() =>
+  auth.isTech
+    ? ['pending', 'requested', 'in-progress', 'completed']
+    : ['requested', 'pending', 'assigned', 'in-progress', 'completed', 'cancelled']
+)
+
+function buildParams(f) {
+  return { ...f, page: 1 }
+}
+
+onMounted(() => {
+  // Always pass explicit defaults to reset any stale filter state in the store
+  jobs.fetchJobs({ status: '', priority: '', page: 1 })
+})
 
 function onFilter(f) {
-  jobs.fetchJobs({ ...f, page: 1 })
+  jobs.fetchJobs(buildParams(f))
 }
 
 function onCardClick(s) {
-  filters.value = { ...filters.value, status: filters.value.status === s ? '' : s }
+  const toggled = filters.value.status === s ? '' : s
+  filters.value = { ...filters.value, status: toggled }
   onFilter(filters.value)
 }
 
-// Stats for the summary bar — sourced from backend aggregate, not filtered list
-const statuses = ['pending', 'assigned', 'in-progress', 'completed']
 function countByStatus(s) {
   return jobs.statusCounts[s] ?? 0
 }
@@ -66,7 +83,9 @@ function countByStatus(s) {
                  hover:border-brand-500 dark:hover:border-brand-400"
           :class="s === filters.status
             ? 'border-brand-500 dark:border-brand-400'
-            : 'border-gray-200 dark:border-gray-800'"
+            : s === 'requested' && countByStatus('requested') > 0
+              ? 'border-teal-400 dark:border-teal-500'
+              : 'border-gray-200 dark:border-gray-800'"
           @click="onCardClick(s)"
         >
           <p class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ countByStatus(s) }}</p>
@@ -76,7 +95,7 @@ function countByStatus(s) {
 
       <!-- Filters -->
       <div class="mb-5">
-        <JobFilters v-model="filters" @filter="onFilter" />
+        <JobFilters v-model="filters" :allowed-statuses="allowedStatuses" @filter="onFilter" />
       </div>
 
       <!-- Job grid -->

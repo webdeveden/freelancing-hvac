@@ -23,6 +23,10 @@ export function emitJobCreated(job) {
   getIO().to('dispatchers').emit('job:created', { job })
 }
 
+export function emitJobRequested(job) {
+  getIO().to('dispatchers').emit('job:requested', { job })
+}
+
 export function emitJobUpdated(job) {
   getIO().to('dispatchers').emit('job:updated', { job })
 }
