@@ -10,7 +10,14 @@ import LoadingSpinner    from '../components/ui/LoadingSpinner.vue'
 const jobs = useJobsStore()
 const auth = useAuthStore()
 
-const filters = ref({ status: '', priority: '' })
+const filters = ref({ status: '', priority: '', source: '' })
+
+const aiOnly = computed(() => filters.value.source === 'ai')
+
+function toggleAiFilter() {
+  filters.value = { ...filters.value, source: aiOnly.value ? '' : 'ai' }
+  onFilter(filters.value)
+}
 
 const statuses = computed(() =>
   auth.isTech
@@ -93,8 +100,25 @@ function countByStatus(s) {
         </div>
       </div>
 
-      <!-- Filters -->
-      <div class="mb-5">
+      <!-- Filters + AI badge -->
+      <div class="flex flex-wrap items-center gap-3 mb-5">
+        <!-- AI Call toggle badge -->
+        <button
+          @click="toggleAiFilter"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm font-medium transition"
+          :class="aiOnly
+            ? 'bg-violet-600 border-violet-600 text-white shadow-sm'
+            : 'bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-violet-400 hover:text-violet-600 dark:hover:text-violet-400'"
+        >
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13
+                 a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0
+                 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+          </svg>
+          AI Calls
+        </button>
+
         <JobFilters v-model="filters" :allowed-statuses="allowedStatuses" @filter="onFilter" />
       </div>
 
@@ -116,7 +140,7 @@ function countByStatus(s) {
 
       <div v-else class="text-center py-16">
         <p class="text-gray-400 dark:text-gray-600">No jobs found.</p>
-        <p v-if="filters.status || filters.priority" class="text-sm text-gray-400 mt-1">
+        <p v-if="filters.status || filters.priority || filters.source" class="text-sm text-gray-400 mt-1">
           Try clearing your filters.
         </p>
       </div>

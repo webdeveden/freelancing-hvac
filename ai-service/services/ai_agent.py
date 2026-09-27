@@ -21,6 +21,7 @@ import anthropic
 from config.settings   import settings
 from models.call_session import CallSession, Message
 from services.faq_handler import get_relevant_faqs, format_faqs_for_prompt
+from services.tech_availability import get_available_techs
 
 
 # ── System prompt ──────────────────────────────────────────────────────────
@@ -42,6 +43,36 @@ def _build_system_prompt(faq_context: str = "") -> str:
 # ── Anthropic client ───────────────────────────────────────────────────────
 
 _client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
+
+
+# ── Tool definitions ───────────────────────────────────────────────────────
+
+_TOOLS = [
+    {
+        "name": "check_tech_availability",
+        "description": (
+            "Returns the list of active HVAC technicians and how many jobs each "
+            "currently has. Use this when the caller asks who will come, who is "
+            "available, whether any technicians are free, or how long until someone "
+            "can arrive."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {},
+            "required": [],
+        },
+    }
+]
+
+
+def _handle_tool_call(tool_name: str, tool_input: dict) -> str:
+    """Dispatches a tool_use request and returns the result as a JSON string."""
+    if tool_name == "check_tech_availability":
+        techs = get_available_techs()
+        if not techs:
+            return json.dumps({"techs": [], "message": "No active technicians found."})
+        return json.dumps({"techs": techs})
+    return json.dumps({"error": f"Unknown tool: {tool_name}"})
 
 
 # ── AI response model ──────────────────────────────────────────────────────
@@ -93,8 +124,41 @@ def process_speech(session: CallSession, speech_input: str) -> AIResponse:
             max_tokens=512,
             system=system_prompt,
             messages=messages,
+            tools=_TOOLS,
         )
-        raw_text = response.content[0].text.strip()
+
+        # Tool-use loop: Claude may call a tool before returning the final JSON.
+        while response.stop_reason == "tool_use":
+            tool_use_block = next(
+                b for b in response.content if b.type == "tool_use"
+            )
+            tool_result = _handle_tool_call(tool_use_block.name, tool_use_block.input)
+            print(f"[ai_agent] Tool called: {tool_use_block.name} → {tool_result[:120]}")
+
+            # Append assistant turn (with tool_use) + tool result, then call again.
+            messages.append({"role": "assistant", "content": response.content})
+            messages.append({
+                "role": "user",
+                "content": [
+                    {
+                        "type": "tool_result",
+                        "tool_use_id": tool_use_block.id,
+                        "content": tool_result,
+                    }
+                ],
+            })
+            response = _client.messages.create(
+                model=settings.ai_model,
+                max_tokens=512,
+                system=system_prompt,
+                messages=messages,
+                tools=_TOOLS,
+            )
+
+        # Final response — parse JSON as before.
+        raw_text = next(
+            b.text for b in response.content if hasattr(b, "text")
+        ).strip()
 
         # Strip markdown code blocks if Claude wraps the JSON (safety net)
         raw_text = re.sub(r"^```(?:json)?\s*", "", raw_text)

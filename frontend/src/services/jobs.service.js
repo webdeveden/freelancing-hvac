@@ -21,6 +21,10 @@ const jobsService = {
     const res = await api.patch(`/jobs/${id}/assign`, { tech_id: techId })
     return res.data
   },
+  async unassignTech(id) {
+    const res = await api.patch(`/jobs/${id}/unassign`)
+    return res.data
+  },
   async claimJob(id) {
     const res = await api.post(`/jobs/${id}/claim`)
     return res.data

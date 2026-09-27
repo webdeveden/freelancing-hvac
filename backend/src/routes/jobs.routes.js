@@ -1,6 +1,6 @@
 import { Router }                from 'express'
 import {
-  listJobs, getJob, createJob, updateJob, assignTech, deleteJob,
+  listJobs, getJob, createJob, updateJob, assignTech, unassignTech, deleteJob,
   claimJob, approveRequest, rejectRequest,
   getComments, addComment, deleteComment,
 } from '../controllers/jobs.controller.js'
@@ -14,6 +14,7 @@ router.post('/',                     requireAdmin,              createJob)
 
 router.patch('/:id',                 requireAuth,               updateJob)
 router.patch('/:id/assign',          requireAdmin,              assignTech)
+router.patch('/:id/unassign',        requireAdminOrDispatcher,  unassignTech)
 router.post('/:id/claim',            requireAuth,               claimJob)
 router.patch('/:id/approve',         requireAdminOrDispatcher,  approveRequest)
 router.patch('/:id/reject',          requireAdminOrDispatcher,  rejectRequest)

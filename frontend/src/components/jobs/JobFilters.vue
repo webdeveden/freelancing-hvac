@@ -8,14 +8,16 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'filter'])
 
 const local = ref({
-  status: props.modelValue.status || '',
+  status:   props.modelValue.status   || '',
   priority: props.modelValue.priority || '',
+  source:   props.modelValue.source   || '',
 })
 
 // Sync when parent updates filters externally (e.g. clicking a summary card)
 watch(() => props.modelValue, (val) => {
   if (val.status   !== local.value.status)   local.value.status   = val.status   || ''
   if (val.priority !== local.value.priority) local.value.priority = val.priority || ''
+  if (val.source   !== local.value.source)   local.value.source   = val.source   || ''
 }, { deep: true })
 
 watch(local, (val) => {
@@ -24,7 +26,7 @@ watch(local, (val) => {
 }, { deep: true })
 
 function reset() {
-  local.value = { status: '', priority: '' }
+  local.value = { status: '', priority: '', source: '' }
 }
 </script>
 
@@ -59,9 +61,21 @@ function reset() {
       <option value="emergency">Emergency</option>
     </select>
 
+    <!-- Source filter -->
+    <select
+      v-model="local.source"
+      class="text-sm px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700
+             bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300
+             focus:outline-none focus:ring-2 focus:ring-brand-500"
+    >
+      <option value="">All Sources</option>
+      <option value="ai">AI Call</option>
+      <option value="manual">Manual</option>
+    </select>
+
     <!-- Reset -->
     <button
-      v-if="local.status || local.priority"
+      v-if="local.status || local.priority || local.source"
       @click="reset"
       class="text-sm text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 underline"
     >

@@ -23,7 +23,7 @@ services:
       # Auto-run migrations on first start
       - ./database/migrations:/docker-entrypoint-initdb.d:ro
     ports:
-      - "5432:5432"
+      - "5433:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-hvac_user} -d ${DB_NAME:-hvac_db}"]
       interval: 10s
@@ -100,7 +100,7 @@ services:
       BUSINESS_DAYS:         ${BUSINESS_DAYS:-Mon,Tue,Wed,Thu,Fri,Sat}
       BUSINESS_TIMEZONE:     ${BUSINESS_TIMEZONE:-America/Chicago}
     ports:
-      - "8000:8000"
+      - "8001:8000"
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://localhost:8000/health || exit 1"]
       interval: 15s

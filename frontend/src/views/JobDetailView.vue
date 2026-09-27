@@ -7,7 +7,7 @@
  *   All users: Update status (pending / in-progress / complete)
  *   All users: Post / delete own comments (admin deletes any)
  */
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore }       from '../stores/auth.store.js'
 import jobsService            from '../services/jobs.service.js'
@@ -22,14 +22,15 @@ const route  = useRoute()
 const router = useRouter()
 const auth   = useAuthStore()
 
-const job           = ref(null)
-const loading       = ref(true)
-const error         = ref(null)
-const showAssign    = ref(false)
-const showDelete    = ref(false)
-const statusLoading = ref(false)
-const claimLoading  = ref(false)
-const claimError    = ref(null)
+const job             = ref(null)
+const loading         = ref(true)
+const error           = ref(null)
+const showAssign      = ref(false)
+const showDelete      = ref(false)
+const statusLoading   = ref(false)
+const claimLoading    = ref(false)
+const claimError      = ref(null)
+const unassignLoading = ref(false)
 
 onMounted(async () => {
   try {
@@ -86,6 +87,29 @@ async function rejectRequest() {
   job.value  = data.job
 }
 
+// Tech can update status only on jobs assigned to them
+const canUpdateStatus = computed(() =>
+  auth.isAdmin || auth.isDispatcher ||
+  (auth.isTech && job.value?.assigned_tech_id === auth.user?.id)
+)
+
+// If the job is assigned, the reset status is 'assigned', not 'pending'
+const statusOptions = computed(() =>
+  job.value?.assigned_tech_id
+    ? ['assigned', 'in-progress', 'completed']
+    : ['pending', 'in-progress', 'completed']
+)
+
+async function unassignTech() {
+  unassignLoading.value = true
+  try {
+    const data = await jobsService.unassignTech(job.value.id)
+    job.value  = data.job
+  } finally {
+    unassignLoading.value = false
+  }
+}
+
 function formatDate(iso) {
   if (!iso) return '—'
   return new Date(iso).toLocaleString('en-US', {
@@ -127,9 +151,25 @@ function formatDate(iso) {
       <div class="bg-white dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 mb-6">
         <div class="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100">
-              {{ job.service_type || 'Service Request' }}
-            </h1>
+            <div class="flex items-center gap-2">
+              <h1 class="text-xl font-bold text-gray-900 dark:text-gray-100">
+                {{ job.service_type || 'Service Request' }}
+              </h1>
+              <span
+                v-if="job.call_sid"
+                title="Created by AI voice assistant"
+                class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-semibold
+                       bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300"
+              >
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13
+                       a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0
+                       01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                </svg>
+                AI Call
+              </span>
+            </div>
             <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Job #{{ job.id }}</p>
           </div>
 
@@ -137,11 +177,11 @@ function formatDate(iso) {
           <JobStatusBadge :status="job.status" :priority="job.priority" />
         </div>
 
-        <!-- Status update buttons (all users) -->
-        <div class="mt-5 flex flex-wrap gap-2">
+        <!-- Status update buttons — admin/dispatcher always, tech only if assigned -->
+        <div v-if="canUpdateStatus" class="mt-5 flex flex-wrap gap-2">
           <p class="text-xs font-medium text-gray-500 dark:text-gray-400 w-full">Update Status:</p>
           <button
-            v-for="s in ['pending', 'in-progress', 'completed']"
+            v-for="s in statusOptions"
             :key="s"
             @click="updateStatus(s)"
             :disabled="job.status === s || statusLoading"
@@ -152,6 +192,16 @@ function formatDate(iso) {
           >
             {{ s }}
           </button>
+        </div>
+
+        <!-- Tech viewing a job not assigned to them -->
+        <div
+          v-else-if="auth.isTech"
+          class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800"
+        >
+          <p class="text-xs text-gray-400 dark:text-gray-500">
+            Status updates are only available for jobs assigned to you.
+          </p>
         </div>
 
         <!-- Tech: request a pending job -->
@@ -241,6 +291,26 @@ function formatDate(iso) {
                 d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
             </svg>
             Delete Job
+          </button>
+        </div>
+
+        <!-- Unassign button — admin and dispatcher -->
+        <div
+          v-if="(auth.isAdmin || auth.isDispatcher) && job.assigned_tech_id"
+          class="mt-4 flex flex-wrap gap-2 pt-4 border-t border-gray-100 dark:border-gray-800"
+        >
+          <button
+            @click="unassignTech"
+            :disabled="unassignLoading"
+            class="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg
+                   bg-orange-50 dark:bg-orange-950 text-orange-700 dark:text-orange-400
+                   hover:bg-orange-100 dark:hover:bg-orange-900 transition disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M13 7a4 4 0 11-8 0 4 4 0 018 0zM9 14a6 6 0 00-6 6h11M18 14l4 4m0-4l-4 4"/>
+            </svg>
+            {{ unassignLoading ? 'Unassigning…' : 'Unassign Tech' }}
           </button>
         </div>
       </div>

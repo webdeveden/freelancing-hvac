@@ -40,13 +40,15 @@ function formatDispatch(d) {
 
 export async function listJobs(req, res, next) {
   try {
-    const { status, priority, assigned_tech_id, page = 1, limit = 20 } = req.query
+    const { status, priority, assigned_tech_id, source, page = 1, limit = 20 } = req.query
     const offset = (parseInt(page) - 1) * parseInt(limit)
 
     const where = {}
     if (status)           where.status           = status
     if (priority)         where.priority         = priority
     if (assigned_tech_id) where.assigned_tech_id = parseInt(assigned_tech_id)
+    if (source === 'ai')     where.call_sid = { not: null }
+    if (source === 'manual') where.call_sid = null
 
     // Techs can only see pending (to claim) and their own jobs
     if (req.user.role === 'tech') {
@@ -150,6 +152,14 @@ export async function updateJob(req, res, next) {
     const id      = parseInt(req.params.id)
     const isAdmin = req.user.role === 'admin'
 
+    // Techs can only update status, and only on jobs assigned to them
+    if (req.user.role === 'tech') {
+      const existing = await prisma.job.findUnique({ where: { id }, select: { assigned_tech_id: true } })
+      if (!existing) return res.status(404).json({ error: 'Job not found' })
+      if (existing.assigned_tech_id !== req.user.id)
+        return res.status(403).json({ error: 'You can only update status on jobs assigned to you' })
+    }
+
     const allowed = isAdmin
       ? ['status', 'priority', 'service_type', 'description', 'address', 'city',
          'assigned_tech_id', 'scheduled_at', 'notes']
@@ -166,6 +176,14 @@ export async function updateJob(req, res, next) {
 
     if (Object.keys(data).length === 0) {
       return res.status(400).json({ error: 'No updatable fields provided' })
+    }
+
+    // If someone sets status back to 'pending' on an already-assigned job,
+    // keep it as 'assigned' so it stays under the tech's queue instead of
+    // falling into the unassigned pool.
+    if (data.status === 'pending') {
+      const current = await prisma.job.findUnique({ where: { id }, select: { assigned_tech_id: true } })
+      if (current?.assigned_tech_id) data.status = 'assigned'
     }
 
     const updated = await prisma.job.update({
@@ -219,6 +237,28 @@ export async function assignTech(req, res, next) {
       socket.emitDispatchNew(formatDispatch(dispatch), job)
     }
 
+    socket.emitJobUpdated(job)
+    res.json({ job })
+  } catch (err) { next(err) }
+}
+
+export async function unassignTech(req, res, next) {
+  try {
+    const id = parseInt(req.params.id)
+
+    const existing = await prisma.job.findUnique({ where: { id }, select: { id: true, assigned_tech_id: true } })
+    if (!existing) return res.status(404).json({ error: 'Job not found' })
+    if (!existing.assigned_tech_id) return res.status(400).json({ error: 'Job has no assigned technician' })
+
+    const updated = await prisma.job.update({
+      where:   { id },
+      data:    { assigned_tech_id: null, status: 'pending' },
+      include: JOB_INCLUDE,
+    })
+
+    await prisma.dispatch.deleteMany({ where: { job_id: id } })
+
+    const job = formatJob(updated)
     socket.emitJobUpdated(job)
     res.json({ job })
   } catch (err) { next(err) }
