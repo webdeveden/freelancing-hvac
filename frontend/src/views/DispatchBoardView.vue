@@ -72,8 +72,10 @@ function getByStatus(s) {
         <div v-if="myJobsLoading" class="flex justify-center py-16">
           <LoadingSpinner size="lg" />
         </div>
-        <div v-else class="flex divide-x divide-gray-200 dark:divide-gray-700 items-start overflow-x-auto">
-          <div v-for="col in jobColumns" :key="col" class="flex-1 min-w-48 px-4 first:pl-0 last:pr-0">
+        <div v-else class="flex flex-col gap-6
+                    md:flex-row md:gap-0 md:divide-x md:divide-gray-200 md:dark:divide-gray-700
+                    md:items-start md:overflow-x-auto">
+          <div v-for="col in jobColumns" :key="col" class="md:flex-1 md:min-w-48 md:px-4 md:first:pl-0 md:last:pr-0">
             <div class="flex items-center justify-between mb-3">
               <h2 class="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">
                 {{ col }}
@@ -106,8 +108,10 @@ function getByStatus(s) {
         <div v-if="dispatches.loading" class="flex justify-center py-16">
           <LoadingSpinner size="lg" />
         </div>
-        <div v-else class="flex divide-x divide-gray-200 dark:divide-gray-700 items-start overflow-x-auto">
-          <div v-for="col in columns" :key="col" class="flex-1 min-w-48 px-4 first:pl-0 last:pr-0">
+        <div v-else class="flex flex-col gap-6
+                    md:flex-row md:gap-0 md:divide-x md:divide-gray-200 md:dark:divide-gray-700
+                    md:items-start md:overflow-x-auto">
+          <div v-for="col in columns" :key="col" class="md:flex-1 md:min-w-48 md:px-4 md:first:pl-0 md:last:pr-0">
             <div class="flex items-center justify-between mb-3">
               <h2 class="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">
                 {{ col }}

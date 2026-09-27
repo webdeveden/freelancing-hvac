@@ -1,0 +1,92 @@
+[
+  {
+    "category": "pricing",
+    "question": "How much does an AC repair cost?",
+    "answer": "AC repair costs typically range from $150 to $600 depending on the issue. Common repairs like capacitor replacement run $150–$300, while compressor repairs can be $400–$1,200. We provide a free diagnostic estimate before any work begins.",
+    "keywords": ["price", "cost", "how much", "charge", "fee", "ac repair", "repair cost"]
+  },
+  {
+    "category": "pricing",
+    "question": "How much does a new AC unit cost to install?",
+    "answer": "A new central AC system installation typically costs $3,500–$7,500 for a standard home, depending on the size of your home, the unit brand, and any ductwork needed. We offer financing options and free in-home estimates.",
+    "keywords": ["new ac", "install", "installation", "unit cost", "replace", "replacement", "how much"]
+  },
+  {
+    "category": "pricing",
+    "question": "What does an annual maintenance visit cost?",
+    "answer": "Our annual HVAC tune-up is $89 per system. This includes a full inspection, filter check, coil cleaning, and refrigerant level check. Service plan members receive this at no additional charge.",
+    "keywords": ["maintenance", "tune-up", "annual", "service", "inspection", "cost", "price"]
+  },
+  {
+    "category": "services",
+    "question": "What HVAC services do you offer?",
+    "answer": "We offer AC repair and installation, heating repair and installation, heat pump service, duct cleaning and repair, thermostat installation, refrigerant recharge, indoor air quality solutions, and annual maintenance plans.",
+    "keywords": ["services", "what do you do", "offer", "provide", "work", "specialize"]
+  },
+  {
+    "category": "services",
+    "question": "Do you service heat pumps?",
+    "answer": "Yes, we fully service heat pumps including diagnostics, refrigerant checks, reversing valve repair, and full replacements. Our technicians are certified for all major heat pump brands.",
+    "keywords": ["heat pump", "service", "repair", "heat pump repair"]
+  },
+  {
+    "category": "services",
+    "question": "Do you offer duct cleaning?",
+    "answer": "Yes, we offer professional duct cleaning and inspection services. We recommend cleaning every 3–5 years or if you notice increased dust, allergy symptoms, or reduced airflow in certain rooms.",
+    "keywords": ["duct", "duct cleaning", "air ducts", "cleaning", "dust"]
+  },
+  {
+    "category": "availability",
+    "question": "What are your business hours?",
+    "answer": "Our regular business hours are Monday through Friday, 8 AM to 6 PM, and Saturday 9 AM to 2 PM. We are closed on Sundays. However, we offer 24/7 emergency service for urgent situations.",
+    "keywords": ["hours", "open", "available", "schedule", "business hours", "when", "weekend"]
+  },
+  {
+    "category": "availability",
+    "question": "How soon can a technician come out?",
+    "answer": "For standard appointments, we can usually schedule within 24–48 hours. For emergencies, we aim to have a technician on site within 2 hours. Call our main line or our AI receptionist will collect your information and we'll confirm timing.",
+    "keywords": ["soon", "how fast", "availability", "appointment", "schedule", "when can", "come out", "response time"]
+  },
+  {
+    "category": "availability",
+    "question": "Do you offer same-day service?",
+    "answer": "We do our best to offer same-day service for urgent situations, subject to technician availability. Emergency calls are always prioritized. Standard maintenance appointments are typically the next business day.",
+    "keywords": ["same day", "today", "urgent", "fast", "quick", "immediate"]
+  },
+  {
+    "category": "emergency",
+    "question": "What counts as an HVAC emergency?",
+    "answer": "HVAC emergencies include: complete loss of heat below 40°F outside, suspected gas leaks or burning smells, electrical sparks or smoke from your unit, carbon monoxide detector alerts, flooding from a burst condensate line, or AC failure during a heat advisory above 100°F.",
+    "keywords": ["emergency", "urgent", "gas leak", "no heat", "smoke", "carbon monoxide", "burning smell", "flooding"]
+  },
+  {
+    "category": "emergency",
+    "question": "I smell gas near my furnace. What should I do?",
+    "answer": "If you smell gas, immediately leave your home without using any light switches or electronics. Call your gas company from outside or a neighbor's phone. Once the gas company clears the line, call us and we will inspect your furnace for any damage. Do NOT turn the furnace back on yourself.",
+    "keywords": ["gas", "smell", "gas leak", "furnace", "danger", "safety"]
+  },
+  {
+    "category": "emergency",
+    "question": "My heat is out and it's freezing inside. Can you help tonight?",
+    "answer": "Yes, we offer 24/7 emergency heating service. Please stay warm by using extra blankets or a space heater if safe. I'll collect your information right now and dispatch an emergency technician to your location. Emergency after-hours service fees may apply.",
+    "keywords": ["no heat", "heat out", "heating broken", "cold", "freezing", "tonight", "emergency heat"]
+  },
+  {
+    "category": "maintenance",
+    "question": "How often should I change my AC filter?",
+    "answer": "Standard 1-inch filters should be replaced every 1–3 months. Thicker 4-inch media filters can last 6–12 months. If you have pets or allergy sufferers in the home, replace more frequently. A dirty filter is the #1 cause of HVAC issues.",
+    "keywords": ["filter", "air filter", "replace filter", "how often", "change filter"]
+  },
+  {
+    "category": "maintenance",
+    "question": "Do you offer service or maintenance plans?",
+    "answer": "Yes, our HVAC Protection Plan is $199/year per system and includes two tune-ups, priority scheduling, 15% off all repairs, and a dedicated service line. Ask our team about enrolling when we visit.",
+    "keywords": ["plan", "service plan", "maintenance plan", "membership", "annual plan", "protection plan"]
+  },
+  {
+    "category": "services",
+    "question": "Do you work on commercial HVAC systems?",
+    "answer": "We primarily service residential properties. For light commercial work (small offices, retail under 5,000 sq ft), please call us directly to discuss. Large commercial projects are referred to our commercial partner network.",
+    "keywords": ["commercial", "business", "office", "retail", "commercial hvac", "building"]
+  }
+]

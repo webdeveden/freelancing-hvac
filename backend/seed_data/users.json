@@ -1,0 +1,44 @@
+[
+  {
+    "email": "admin@hvacpro.com",
+    "password": "Admin@1234",
+    "role": "admin",
+    "full_name": "Sarah Mitchell",
+    "phone": "555-001-0001"
+  },
+  {
+    "email": "dispatch@hvacpro.com",
+    "password": "Dispatch@1234",
+    "role": "dispatcher",
+    "full_name": "James Carter",
+    "phone": "555-001-0002"
+  },
+  {
+    "email": "dispatch2@hvacpro.com",
+    "password": "Dispatch@1234",
+    "role": "dispatcher",
+    "full_name": "Maria Lopez",
+    "phone": "555-001-0003"
+  },
+  {
+    "email": "tech.mike@hvacpro.com",
+    "password": "Tech@1234",
+    "role": "tech",
+    "full_name": "Mike Torres",
+    "phone": "555-002-0001"
+  },
+  {
+    "email": "tech.angela@hvacpro.com",
+    "password": "Tech@1234",
+    "role": "tech",
+    "full_name": "Angela Rivera",
+    "phone": "555-002-0002"
+  },
+  {
+    "email": "tech.derek@hvacpro.com",
+    "password": "Tech@1234",
+    "role": "tech",
+    "full_name": "Derek Johnson",
+    "phone": "555-002-0003"
+  }
+]
