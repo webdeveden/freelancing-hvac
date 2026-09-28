@@ -1,19 +1,18 @@
-FROM node:22-alpine
-
-ARG NODE_ENV=development
-RUN if [ "$NODE_ENV" = "production" ]; then apk upgrade --no-cache; fi
+FROM python:3.11-slim
 
 WORKDIR /app
 
-# Copy package.json and Prisma schema before install so @prisma/client postinstall
-# can run prisma generate automatically
-COPY backend/package.json ./
-COPY backend/prisma/ ./prisma/
-RUN npm install --omit=dev && npx prisma generate
+# Install system deps needed by psycopg2-binary
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq-dev gcc curl && rm -rf /var/lib/apt/lists/*
 
-# Copy backend source
-COPY backend/src/ ./src/
+# Install Python dependencies
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application code
+COPY . .
 
 EXPOSE 3001
 
-CMD ["node", "src/index.js"]
+CMD ["uvicorn", "main:socket_app", "--host", "0.0.0.0", "--port", "3001"]

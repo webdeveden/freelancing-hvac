@@ -99,6 +99,9 @@ html.dark .markdown-body code {
 html.dark .markdown-body pre {
   @apply bg-gray-800;
 }
+.markdown-body table {
+  @apply block w-full overflow-x-auto mb-2;
+}
 .markdown-body strong { @apply font-semibold; }
 .markdown-body em     { @apply italic; }
 .markdown-body a {
